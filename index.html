@@ -1,0 +1,417 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>Interactive WebApp: Huntsville Livability Index</title>
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+        z-index: 1;
+      }
+      img {
+       width: 200px;
+       height: 150px;
+       left: 0px;
+       position: "absolute";
+       bottom: 17px;
+       z-index: 2;
+      }
+    </style>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.14/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.14/"></script>
+    <script>
+      require(["esri/Map", "esri/views/MapView", "esri/layers/OpenStreetMapLayer", "esri/layers/FeatureLayer", "esri/widgets/Search", "esri/widgets/LayerList", "esri/widgets/Bookmarks", "esri/widgets/Expand", "esri/widgets/Locate", "esri/widgets/Home"], function(Map, MapView, OpenStreetMapLayer, FeatureLayer, Search, LayerList, Bookmarks, Expand, Locate, Home) {
+        var map = new Map({
+      });
+        var view = new MapView({
+          container: "viewDiv", 
+          map: map, 
+          zoom: 11, 
+          center: [-79.25, 45.275] 
+        });
+        
+//Home Button Widget        
+        var homeBtn = new Home({
+          view: view
+        });
+        view.ui.add(homeBtn, "top-left");
+        
+//Locate Widget
+        var locateBtn = new Locate({
+          view: view
+        });
+        view.ui.add(locateBtn, {
+          position: "top-left"
+        });
+        
+//Search Widget
+        var search = new Search({
+        view: view
+        });
+        var SerExpand = new Expand({
+          view: view,
+          content: search,
+          expanded: false
+        });
+        view.ui.add(SerExpand, "top-left"); 
+               
+//Bookmarks Widget
+       var bookmarks = new Bookmarks({
+          view: view,
+          editingEnabled: true
+        }); 
+        var bkExpand = new Expand({
+          view: view,
+          content: bookmarks,
+          expanded: false
+        });
+        view.ui.add(bkExpand, "top-left");
+        
+//Layer List Widget      
+        var layerList = new LayerList({
+        view: view,
+          listItemCreatedFunction: function(event) {
+         var item = event.item;
+            if (item.layer.type != "group") {
+              item.panel = {
+                content: "legend",
+                open: false
+              };
+            }
+          }
+        });
+        var LayExpand = new Expand({
+          view: view,
+          content: layerList,
+          expanded: false
+        });
+        view.ui.add(LayExpand, "top-right");
+        
+//Basemap: OpenStreetMap 
+        var osmLayer = new OpenStreetMapLayer({
+          opacity: 0.70,
+          title: "OpenSreetMap"
+        });
+        map.add(osmLayer);
+
+//MCA: Tourist Layer
+        //Symbology:
+        // Symbol for Most Suitable
+        var TMostSym = {
+          type: "simple-fill", 
+          color: "#641E16",
+          style: "solid",
+          outline: {
+              color: "",
+              width: 0
+            }
+        };
+        // Symbol for Suitable
+        var TSuitSym = {
+          type: "simple-fill",
+          color: "#CB4335",
+          style: "solid",
+          outline: {
+              color: "",
+              width: 0
+            }
+        };
+        // Symbol for Somewhat Suitable
+        var TSomeSym = {
+          type: "simple-fill",
+          color: "#E67E22",
+          style: "solid",
+          outline: {
+              color: "",
+              width: 0
+            }
+        };
+        // Symbol for Less Suitable
+        var TLessSym = {
+          type: "simple-fill",
+          color: "#F5B041",
+          style: "solid",
+          outline: {
+              color: "",
+              width: 0
+            }
+        };
+        // Symbol for Not Suitable
+        var TNotSym = {
+          type: "simple-fill",
+          color: "#F9E79F",
+          style: "solid",
+          outline: {
+              color: "",
+              width: 0
+            }
+        };
+        var TouristRenderer = {
+          type: "unique-value",
+          field: "TYPE",
+          uniqueValueInfos: [
+            {
+              value: "Most Suitable",
+              symbol: TMostSym,
+            },
+            {
+              value: "Suitable",
+              symbol: TSuitSym,
+            },
+            {
+              value: "Somewhat Suitable",
+              symbol: TSomeSym,
+            },
+            {
+              value: "Less Suitable",
+              symbol: TLessSym,
+            },
+            {
+              value: "Not Suitable",
+              symbol: TNotSym,
+            }
+          ]
+        };
+        
+        //Defin popup:
+        var popupTourist = {
+        "title": "Livability Index for Tourists",
+        "content": "<b>Suitability :</b> {Type}<br>"
+      }
+        //Add Layer:
+        var TouristLayer = new FeatureLayer({
+        url: "https://services1.arcgis.com/DwLTn0u9VBSZvUPe/arcgis/rest/services/Tourist_/FeatureServer",
+          renderer: TouristRenderer,
+          outFields: ["Type"],
+          popupTemplate: popupTourist,
+          title: "Livibility Index for Tourists",
+          opacity: 0.70
+      });
+        map.add(TouristLayer)
+
+//MCA: Resident layer
+        //Symbology:
+        // Symbol for Most Suitable
+        var RMostSym = {
+          type: "simple-fill", 
+          color: "#641E16",
+          style: "solid",
+          outline: {
+              color: "",
+              width: 0
+            }
+        };
+        // Symbol for Suitable
+        var RSuitSym = {
+          type: "simple-fill",
+          color: "#CB4335",
+          style: "solid",
+          outline: {
+              color: "",
+              width: 0
+            }
+        };
+        // Symbol for Somewhat Suitable
+        var RSomeSym = {
+          type: "simple-fill",
+          color: "#E67E22",
+          style: "solid",
+          outline: {
+              color: "",
+              width: 0
+            }
+        };        
+        // Symbol for Less Suitable
+        var RLessSym = {
+          type: "simple-fill",
+          color: "#F5B041",
+          style: "solid",
+          outline: {
+              color: "",
+              width: 0
+            }
+        };
+        // Symbol for Not Suitable
+        var RNotSym = {
+          type: "simple-fill",
+          color: "#F9E79F",
+          style: "solid",
+          outline: {
+              color: "",
+              width: 0
+            }
+        };
+        
+        var ResidentRenderer = {
+          type: "unique-value",
+          field: "TYPE",
+          uniqueValueInfos: [
+            {
+              value: "Most Suitable",
+              symbol: RMostSym,
+            },
+            {
+              value: "Suitable",
+              symbol: RSuitSym,
+            },
+            {
+              value: "Somewhat Suitable",
+              symbol: RSomeSym,
+            },
+            {
+              value: "Less Suitable",
+              symbol: RLessSym,
+            },
+            {
+              value: "Not Suitable",
+              symbol: RNotSym,
+            }
+          ]
+        };
+       
+        //Defin popup:
+        var popupResident = {
+        "title": "Livability Index for Residents",
+        "content": "<b>Suitability :</b> {Type}<br>"
+      }
+        //Add Layer: 
+        var ResidentLayer = new FeatureLayer({
+        url: "https://services1.arcgis.com/DwLTn0u9VBSZvUPe/arcgis/rest/services/Resident/FeatureServer",
+          renderer: ResidentRenderer,
+          outFields: ["Type"],
+          popupTemplate: popupResident,
+          title: "Livibility Index for Residents",
+          opacity: 0.70
+      });
+        map.add(ResidentLayer)
+      
+//Huntsville Floodzone Layer 
+			  //Symbology: 
+		    // Symbol for Natural Resource
+        var NRSym = {
+          type: "simple-fill", 
+          color: "#002a66",
+          style: "solid",
+          outline: {
+              color: "",
+              width: 0
+            }
+        };
+        // Symbol for Natural Resource Floodway
+        var FloodwaySym = {
+          type: "simple-fill",
+          color: "#0053cc",
+          style: "solid",
+          outline: {
+              color: "",
+              width: 0
+            }
+        };
+        // Symbol for Natural Resource Floodfringe
+        var FringeSym = {
+          type: "simple-fill",
+          color: "#3386ff",
+          style: "solid",
+          outline: {
+              color: "",
+              width: 0
+            }
+        };
+
+        var FloodRenderer = {
+          type: "unique-value",
+          field: "ZONE_NAME",
+          uniqueValueInfos: [
+            {
+              value: "Natural Resource",
+              symbol: NRSym,
+            },
+            {
+              value: "Natural Resource Floodway",
+              symbol: FloodwaySym,
+            },
+            {
+              value: "Natural Resource Floodfringe",
+              symbol: FringeSym,
+            }
+          ]
+        };
+        //Defin popup:
+        var popupFlood = {
+        "title": "Flood Zone",
+        "content": "<b>Type:</b> {ZONE_NAME}<br>"
+      }
+        //Add Layer:
+        var floodLayer = new FeatureLayer({
+        url: "https://services1.arcgis.com/DwLTn0u9VBSZvUPe/arcgis/rest/services/Floodzone/FeatureServer",
+          renderer: FloodRenderer,
+          outFields: ["ZONE_NAME"],
+          popupTemplate: popupFlood,
+          title: "Flood Zone"
+      });
+        map.add(floodLayer)
+        
+//Huntsville Tourist Attraction Layer 
+        //Symbology:
+		    var attractionRenderer = {
+        "type": "simple",
+        "symbol": {
+          "type": "picture-marker",
+          "url": "https://image.flaticon.com/icons/png/512/3/3901.png",
+          "width": "14",
+          "height": "14"
+           }
+         }
+        //Defin popup:
+        var popupAttraction = {
+        "title": "Tourist Attractions",
+        "content": "<b>Name:</b> {NAME}<br><b>Address:</b> {ADDRESS}<br>"
+      }
+        
+        //Add Layer:
+        var attractionLayer = new FeatureLayer({
+        url: "https://services1.arcgis.com/DwLTn0u9VBSZvUPe/arcgis/rest/services/Tourist_Attraction/FeatureServer",
+          renderer: attractionRenderer,
+          outFields: ["NAME", "ADDRESS"],
+          popupTemplate: popupAttraction,
+          title: "Tourist Attractions"
+      });
+        map.add(attractionLayer)
+        
+//Huntsville Boundary Layer
+        //Symbology:
+        var BoundaryRenderer = {
+          type: "simple", 
+          symbol: {
+            type: "simple-fill", 
+            color: null,
+            outline: {
+              color: "black",
+              width: 2
+            }
+          }
+        };
+        //Add Layer:
+        var boundaryLayer = new FeatureLayer({
+        url: "https://services1.arcgis.com/DwLTn0u9VBSZvUPe/arcgis/rest/services/Boundary/FeatureServer", 
+          renderer: BoundaryRenderer,
+          title: "Huntsville Boundary"
+      });
+        map.add(boundaryLayer)
+        
+      });
+    </script>
+  </head>
+  <body>
+    <header>
+    <h1 style="color:#262626;font-family:century;font-size:37px;text-align:center;"><strong>Town of Huntsville - Livability Index for Residents and Tourists</h1>
+    </header>
+    <div id="viewDiv"></div>
+    <img src="\CompositeMap.png">
+ </body>
+</html>
